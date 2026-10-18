@@ -1,14 +1,13 @@
-group = "app.template"
+group = "app.crosus.waze"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
-        contact = "na"
-        website = "na"
+        name = "Crosus Waze Patches"
+        description = "Avisos de los paneles de mensaje variable de la DGT dentro de Waze (móvil y Android Auto)"
+        source = "git@github.com:Crosus97/crosus-waze-patches.git"
+        author = "Crosus97"
+        contact = "https://github.com/Crosus97/crosus-waze-patches/issues"
+        website = "https://github.com/Crosus97/crosus-waze-patches"
         license = "GPLv3"
     }
 }
