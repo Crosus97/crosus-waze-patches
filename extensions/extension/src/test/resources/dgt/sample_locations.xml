@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XML SINTÉTICO con la estructura DATEX II v3 VMS. Sustituir/añadir un recorte del XML real de la DGT. -->
+<d2:payload xmlns:d2="http://datex2.eu/schema/3/d2Payload" xmlns:com="http://datex2.eu/schema/3/common" xmlns:vms="http://datex2.eu/schema/3/vms" xmlns:loc="http://datex2.eu/schema/3/locationReferencing">
+ <vms:vmsControllerTable id="DGT_TABLE" version="1">
+  <vms:vmsController id="PMV_A" version="1">
+   <vms:vmsLocation><loc:pointByCoordinates><loc:bearing>45</loc:bearing><loc:pointCoordinates><loc:latitude>39.5700</loc:latitude><loc:longitude>2.6500</loc:longitude></loc:pointCoordinates></loc:pointByCoordinates></vms:vmsLocation>
+   <loc:roadName>MA-20</loc:roadName>
+  </vms:vmsController>
+  <vms:vmsController id="PMV_B" version="1">
+   <vms:vmsLocation><loc:pointByCoordinates><loc:bearing>225</loc:bearing><loc:pointCoordinates><loc:latitude>39.5700</loc:latitude><loc:longitude>2.6501</loc:longitude></loc:pointCoordinates></loc:pointByCoordinates></vms:vmsLocation>
+  </vms:vmsController>
+ </vms:vmsControllerTable>
+</d2:payload>

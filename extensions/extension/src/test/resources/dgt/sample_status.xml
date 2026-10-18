@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XML SINTÉTICO con la estructura DATEX II v3 VMS. Sustituir/añadir un recorte del XML real de la DGT. -->
+<d2:payload xmlns:d2="http://datex2.eu/schema/3/d2Payload" xmlns:vms="http://datex2.eu/schema/3/vms">
+ <vms:vmsControllerStatus>
+  <vms:vmsControllerReference id="PMV_A" targetClass="vms:VmsController" version="1"/>
+  <vms:vmsStatus><vms:vmsMessage><vms:textPage><vms:vmsTextLine><vms:vmsTextLine>ACCIDENTE A 2 KM</vms:vmsTextLine></vms:vmsTextLine><vms:vmsTextLine><vms:vmsTextLine>CARRIL DCHO CORTADO</vms:vmsTextLine></vms:vmsTextLine></vms:textPage></vms:vmsMessage></vms:vmsStatus>
+ </vms:vmsControllerStatus>
+ <vms:vmsControllerStatus>
+  <vms:vmsControllerReference id="PMV_B" targetClass="vms:VmsController" version="1"/>
+  <vms:vmsStatus><vms:vmsMessage><vms:textPage><vms:vmsTextLine><vms:vmsTextLine>PRECAUCION OBRAS</vms:vmsTextLine></vms:vmsTextLine></vms:textPage></vms:vmsMessage></vms:vmsStatus>
+ </vms:vmsControllerStatus>
+</d2:payload>
