@@ -19,3 +19,12 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }
+
+settings {
+    extensions {
+        defaultNamespace = "app.crosus.waze.extension"
+
+        // Ruta absoluta, si no las extensiones en subcarpetas no la encuentran.
+        proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
+    }
+}

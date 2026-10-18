@@ -12,7 +12,10 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,6 +23,8 @@ import app.crosus.waze.extension.dgt.DgtClient;
 import app.crosus.waze.extension.dgt.Panel;
 import app.crosus.waze.extension.dgt.PanelNotifier;
 import app.crosus.waze.extension.dgt.ProximityEngine;
+import app.crosus.waze.extension.dgt.TestPanel;
+import app.crosus.waze.extension.geo.Geo;
 
 /**
  * Punto de entrada del patch. Waze llama a {@link #onAppStarted()} en cada arranque
@@ -44,6 +49,17 @@ public final class DgtPanels {
     private static volatile Map<String, Panel> panels = Collections.emptyMap();
     private static long lastLocationsFetch;
     private static PanelNotifier notifier;
+    private static final TestPanel testPanel = new TestPanel();
+    /** Última posición, para calcular rumbo y velocidad si el GPS no los da (p. ej. rutas simuladas). */
+    private static Location previous;
+
+    /**
+     * Modo prueba. El patch sustituye el cuerpo de este método según la opción
+     * "Modo prueba" de Morphe Manager. No cambiar el nombre ni la firma.
+     */
+    public static boolean isTestMode() {
+        return false;
+    }
 
     private DgtPanels() {
     }
@@ -66,7 +82,7 @@ public final class DgtPanels {
 
             worker.post(DgtPanels::refreshLoop);
             main.post(() -> startLocationUpdates(context));
-            Log.i(TAG, "Paneles DGT arrancado");
+            Log.i(TAG, "Paneles DGT arrancado" + (isTestMode() ? " (MODO PRUEBA)" : ""));
         } catch (Throwable t) {
             // Nunca tumbar Waze por un fallo del patch.
             Log.e(TAG, "Fallo al arrancar", t);
@@ -137,12 +153,37 @@ public final class DgtPanels {
 
     private static void onLocation(Location location) {
         try {
-            Map<String, Panel> current = panels;
-            if (current.isEmpty()) return;
+            long now = System.currentTimeMillis();
             double heading = location.hasBearing() ? location.getBearing() : Double.NaN;
-            double speed = location.hasSpeed() ? location.getSpeed() : 0;
-            Panel hit = engine.check(current.values(), location.getLatitude(), location.getLongitude(),
-                    heading, speed, System.currentTimeMillis());
+            double speed = location.hasSpeed() ? location.getSpeed() : Double.NaN;
+            Location prev = previous;
+            previous = location;
+            if (prev != null && (Double.isNaN(heading) || Double.isNaN(speed))) {
+                double d = Geo.distanceMeters(prev.getLatitude(), prev.getLongitude(),
+                        location.getLatitude(), location.getLongitude());
+                double dt = (location.getTime() - prev.getTime()) / 1000.0;
+                if (Double.isNaN(speed) && dt > 0) speed = d / dt;
+                // Con menos de 3 m de movimiento el rumbo calculado es ruido.
+                if (Double.isNaN(heading) && d >= 3) {
+                    heading = Geo.bearingDegrees(prev.getLatitude(), prev.getLongitude(),
+                            location.getLatitude(), location.getLongitude());
+                }
+            }
+            if (Double.isNaN(speed)) speed = 0;
+
+            Collection<Panel> candidates = panels.values();
+            if (isTestMode()) {
+                Panel fake = testPanel.update(location.getLatitude(), location.getLongitude(), heading, now);
+                if (fake != null) {
+                    List<Panel> withFake = new ArrayList<>(candidates);
+                    withFake.add(fake);
+                    candidates = withFake;
+                }
+            }
+            if (candidates.isEmpty()) return;
+
+            Panel hit = engine.check(candidates, location.getLatitude(), location.getLongitude(),
+                    heading, speed, now);
             if (hit != null) {
                 Log.i(TAG, "Aviso: " + hit);
                 notifier.show(hit);

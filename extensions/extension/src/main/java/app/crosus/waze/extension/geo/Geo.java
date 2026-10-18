@@ -33,6 +33,23 @@ public final class Geo {
         return d > 180 ? 360 - d : d;
     }
 
+    /**
+     * Punto al que se llega saliendo de (lat, lon) con un rumbo y una distancia dados.
+     *
+     * @return {latitud, longitud}
+     */
+    public static double[] destination(double lat, double lon, double bearingDeg, double distanceM) {
+        double delta = distanceM / EARTH_RADIUS_M;
+        double theta = Math.toRadians(bearingDeg);
+        double phi1 = Math.toRadians(lat);
+        double lambda1 = Math.toRadians(lon);
+        double phi2 = Math.asin(Math.sin(phi1) * Math.cos(delta)
+                + Math.cos(phi1) * Math.sin(delta) * Math.cos(theta));
+        double lambda2 = lambda1 + Math.atan2(Math.sin(theta) * Math.sin(delta) * Math.cos(phi1),
+                Math.cos(delta) - Math.sin(phi1) * Math.sin(phi2));
+        return new double[]{Math.toDegrees(phi2), Math.toDegrees(lambda2)};
+    }
+
     public static double normalize(double degrees) {
         double d = degrees % 360.0;
         return d < 0 ? d + 360.0 : d;

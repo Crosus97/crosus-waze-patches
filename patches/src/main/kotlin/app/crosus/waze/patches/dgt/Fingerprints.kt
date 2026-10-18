@@ -15,3 +15,14 @@ internal object AppStartedFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf()
 )
+
+/**
+ * `boolean DgtPanels.isTestMode()` de nuestra propia extensión. El patch reescribe su cuerpo
+ * según la opción "Modo prueba".
+ */
+internal object IsTestModeFingerprint : Fingerprint(
+    definingClass = "Lapp/crosus/waze/extension/DgtPanels;",
+    name = "isTestMode",
+    returnType = "Z",
+    parameters = listOf()
+)

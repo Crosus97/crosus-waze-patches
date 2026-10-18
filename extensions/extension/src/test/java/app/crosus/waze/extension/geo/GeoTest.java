@@ -43,4 +43,11 @@ public class GeoTest {
         assertEquals(350, Geo.normalize(-10), 0.001);
         assertEquals(10, Geo.normalize(370), 0.001);
     }
+
+    @Test
+    public void destino_600mAlNoreste_quedaA600mConEseRumbo() {
+        double[] p = Geo.destination(39.57, 2.65, 45, 600);
+        assertEquals(600, Geo.distanceMeters(39.57, 2.65, p[0], p[1]), 0.5);
+        assertEquals(45, Geo.bearingDegrees(39.57, 2.65, p[0], p[1]), 0.1);
+    }
 }
