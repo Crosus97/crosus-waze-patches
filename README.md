@@ -40,6 +40,22 @@ Añádelos a Morphe Manager: https://morphe.software/add-source?github=Crosus97/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
+> **[v1.0.0-dev.1](https://github.com/Crosus97/crosus-waze-patches/releases/tag/v1.0.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+<details open>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.25.0.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Paneles DGT](#paneles-dgt) | Avisa del mensaje de los paneles de mensaje variable de la DGT al acercarte a ellos. | • Modo prueba<br>• Registro de trayecto |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ## 🛠️ Desarrollo
