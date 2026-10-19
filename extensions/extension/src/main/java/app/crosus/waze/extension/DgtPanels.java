@@ -108,7 +108,10 @@ public final class DgtPanels {
                 }
                 panels = fresh;
                 lastLocationsFetch = now;
-                Log.i(TAG, "Localizaciones: " + fresh.size() + " paneles");
+                int oriented = 0;
+                for (Panel p : fresh.values()) if (!Double.isNaN(p.bearing)) oriented++;
+                Log.i(TAG, "Localizaciones: " + fresh.size() + " paneles, " + oriented
+                        + " con sentido conocido (el resto avisa en ambos sentidos)");
             }
             int withText = client.fetchStatus(panels);
             Log.i(TAG, "Tiempo real: " + withText + " paneles con mensaje");

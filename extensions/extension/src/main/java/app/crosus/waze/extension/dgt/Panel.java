@@ -13,6 +13,15 @@ public final class Panel {
     public double bearing = Double.NaN;
     /** Carretera, si viene en los datos (p. ej. "MA-20"). Puede ser null. */
     public String road;
+    /** Destino del sentido del panel (p. ej. "MADRID"). Puede ser null. */
+    public String destination;
+    /** Punto kilométrico. NaN si no viene. */
+    public double kilometerPoint = Double.NaN;
+    /**
+     * Sentido según la DGT ("tpegDirectionRoad"): "positive" = km crecientes, "negative" = km
+     * decrecientes, "both"/"unknown". Con {@link PanelOrientation} se traduce a {@link #bearing}.
+     */
+    public String direction;
 
     /**
      * Una página del panel. Muchos paneles alternan varias (p. ej. "OBRAS A 2 KM" y luego "CARRIL IZQDO CORTADO").

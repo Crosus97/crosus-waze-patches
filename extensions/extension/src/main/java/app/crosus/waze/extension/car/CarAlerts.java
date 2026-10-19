@@ -112,6 +112,7 @@ public final class CarAlerts {
             }
         }
         String source = panel.road != null ? "Panel DGT " + panel.road : "Panel DGT";
+        if (panel.destination != null) source += " → " + panel.destination;
         if (title == null) title = source; // panel solo con pictograma (p. ej. un límite de velocidad)
         if (rest.length() > 0) rest.append(" · ");
         rest.append(source);

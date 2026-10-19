@@ -45,6 +45,8 @@ public final class DatexParser {
         for (Panel p : handler.byId.values()) {
             if (p.hasLocation()) result.put(p.id, p);
         }
+        // La DGT no da la orientación como rumbo: se deduce del sentido (km crecientes/decrecientes).
+        PanelOrientation.assign(result.values());
         return result;
     }
 
@@ -140,6 +142,15 @@ public final class DatexParser {
                     case "roadnumber":
                         setOnOpen(value, Field.ROAD);
                         break;
+                    case "roaddestination":
+                        setOnOpen(value, Field.DESTINATION);
+                        break;
+                    case "kilometerpoint":
+                        setOnOpen(value, Field.KM);
+                        break;
+                    case "tpegdirectionroad":
+                        setOnOpen(value, Field.DIRECTION);
+                        break;
                     default:
                         break;
                 }
@@ -147,7 +158,7 @@ public final class DatexParser {
             if (openHasId.pop()) open.pop();
         }
 
-        private enum Field {LAT, LON, BEARING, ROAD}
+        private enum Field {LAT, LON, BEARING, ROAD, DESTINATION, KM, DIRECTION}
 
         /** Solo rellena el primer valor de cada campo, para que una tabla no machaque al panel. */
         private void setOnOpen(String value, Field field) {
@@ -165,6 +176,15 @@ public final class DatexParser {
                             break;
                         case ROAD:
                             if (p.road == null) p.road = value;
+                            break;
+                        case DESTINATION:
+                            if (p.destination == null) p.destination = value;
+                            break;
+                        case KM:
+                            if (Double.isNaN(p.kilometerPoint)) p.kilometerPoint = Double.parseDouble(value);
+                            break;
+                        case DIRECTION:
+                            if (p.direction == null) p.direction = value;
                             break;
                     }
                 } catch (NumberFormatException ignored) {

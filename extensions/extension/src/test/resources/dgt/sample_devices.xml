@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Estructura real del perfil DGT DevicePublication 3.7 (verificada el 19/10/2026).
+     Caso real simplificado: pórtico en la A-6 km 486.9 con un panel por sentido a 13 m,
+     y otro panel en el km 490.0 unos 3 km al este (referencia del sentido creciente). -->
+<d2:payload xmlns:d2="http://levelC/schema/3/d2Payload" xmlns:ns2="http://levelC/schema/3/facilities" xmlns:loc="http://levelC/schema/3/locationReferencing" xmlns:lse="http://levelC/schema/3/locationReferencingSpanishExtension" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ns2:device xsi:type="fse:ExtendedDevice" id="A6_POS" version="3">
+        <ns2:typeOfDevice>vms</ns2:typeOfDevice>
+        <ns2:pointLocation>
+            <loc:supplementaryPositionalDescription><loc:roadInformation><loc:roadDestination>ARTEIXO</loc:roadDestination><loc:roadName>A-6</loc:roadName></loc:roadInformation></loc:supplementaryPositionalDescription>
+            <loc:tpegPointLocation xsi:type="loc:TpegSimplePoint">
+                <loc:tpegDirection>unknown</loc:tpegDirection>
+                <loc:point xsi:type="loc:TpegNonJunctionPoint">
+                    <loc:pointCoordinates><loc:latitude>42.969700</loc:latitude><loc:longitude>-7.479200</loc:longitude></loc:pointCoordinates>
+                    <loc:_tpegNonJunctionPointExtension><loc:extendedTpegNonJunctionPoint><lse:kilometerPoint>486.9</lse:kilometerPoint><lse:province>LUGO</lse:province></loc:extendedTpegNonJunctionPoint></loc:_tpegNonJunctionPointExtension>
+                </loc:point>
+                <loc:_tpegSimplePointExtension><loc:extendedTpegSimplePoint><lse:tpegDirectionRoad>positive</lse:tpegDirectionRoad></loc:extendedTpegSimplePoint></loc:_tpegSimplePointExtension>
+            </loc:tpegPointLocation>
+        </ns2:pointLocation>
+    </ns2:device>
+    <ns2:device xsi:type="fse:ExtendedDevice" id="A6_NEG" version="3">
+        <ns2:typeOfDevice>vms</ns2:typeOfDevice>
+        <ns2:pointLocation>
+            <loc:supplementaryPositionalDescription><loc:roadInformation><loc:roadDestination>MADRID</loc:roadDestination><loc:roadName>A-6</loc:roadName></loc:roadInformation></loc:supplementaryPositionalDescription>
+            <loc:tpegPointLocation xsi:type="loc:TpegSimplePoint">
+                <loc:tpegDirection>unknown</loc:tpegDirection>
+                <loc:point xsi:type="loc:TpegNonJunctionPoint">
+                    <loc:pointCoordinates><loc:latitude>42.969810</loc:latitude><loc:longitude>-7.479200</loc:longitude></loc:pointCoordinates>
+                    <loc:_tpegNonJunctionPointExtension><loc:extendedTpegNonJunctionPoint><lse:kilometerPoint>486.9</lse:kilometerPoint><lse:province>LUGO</lse:province></loc:extendedTpegNonJunctionPoint></loc:_tpegNonJunctionPointExtension>
+                </loc:point>
+                <loc:_tpegSimplePointExtension><loc:extendedTpegSimplePoint><lse:tpegDirectionRoad>negative</lse:tpegDirectionRoad></loc:extendedTpegSimplePoint></loc:_tpegSimplePointExtension>
+            </loc:tpegPointLocation>
+        </ns2:pointLocation>
+    </ns2:device>
+    <ns2:device xsi:type="fse:ExtendedDevice" id="A6_KM490" version="3">
+        <ns2:typeOfDevice>vms</ns2:typeOfDevice>
+        <ns2:pointLocation>
+            <loc:supplementaryPositionalDescription><loc:roadInformation><loc:roadName>A-6</loc:roadName></loc:roadInformation></loc:supplementaryPositionalDescription>
+            <loc:tpegPointLocation xsi:type="loc:TpegSimplePoint">
+                <loc:point xsi:type="loc:TpegNonJunctionPoint">
+                    <loc:pointCoordinates><loc:latitude>42.969700</loc:latitude><loc:longitude>-7.441100</loc:longitude></loc:pointCoordinates>
+                    <loc:_tpegNonJunctionPointExtension><loc:extendedTpegNonJunctionPoint><lse:kilometerPoint>490.0</lse:kilometerPoint></loc:extendedTpegNonJunctionPoint></loc:_tpegNonJunctionPointExtension>
+                </loc:point>
+                <loc:_tpegSimplePointExtension><loc:extendedTpegSimplePoint><lse:tpegDirectionRoad>positive</lse:tpegDirectionRoad></loc:extendedTpegSimplePoint></loc:_tpegSimplePointExtension>
+            </loc:tpegPointLocation>
+        </ns2:pointLocation>
+    </ns2:device>
+    <ns2:device xsi:type="fse:ExtendedDevice" id="AISLADO" version="3">
+        <ns2:pointLocation>
+            <loc:supplementaryPositionalDescription><loc:roadInformation><loc:roadName>N-999</loc:roadName></loc:roadInformation></loc:supplementaryPositionalDescription>
+            <loc:tpegPointLocation xsi:type="loc:TpegSimplePoint">
+                <loc:point xsi:type="loc:TpegNonJunctionPoint">
+                    <loc:pointCoordinates><loc:latitude>40.0</loc:latitude><loc:longitude>-3.0</loc:longitude></loc:pointCoordinates>
+                    <loc:_tpegNonJunctionPointExtension><loc:extendedTpegNonJunctionPoint><lse:kilometerPoint>10.0</lse:kilometerPoint></loc:extendedTpegNonJunctionPoint></loc:_tpegNonJunctionPointExtension>
+                </loc:point>
+                <loc:_tpegSimplePointExtension><loc:extendedTpegSimplePoint><lse:tpegDirectionRoad>positive</lse:tpegDirectionRoad></loc:extendedTpegSimplePoint></loc:_tpegSimplePointExtension>
+            </loc:tpegPointLocation>
+        </ns2:pointLocation>
+    </ns2:device>
+</d2:payload>
