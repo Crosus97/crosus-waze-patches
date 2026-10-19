@@ -107,4 +107,26 @@ public class ProximityEngineTest {
         p.setTextLines(Collections.singletonList(text));
         return p;
     }
+
+    // ------------------------------------------------------------------ carreteras paralelas
+
+    @Test
+    public void carreteraParalela_a150m_noAvisa() {
+        // Caso real: vas por una calle y la Ma-19 va paralela 150 m al norte, en tu mismo sentido.
+        Panel ma19 = panelAt(app.crosus.waze.extension.geo.Geo.destination(39.57, 2.65, 0, 150), 600, 90);
+        assertNull(engine.check(Collections.singletonList(ma19), 39.57, 2.65, 90, VELOCIDAD, 0));
+    }
+
+    @Test
+    public void mismaCarretera_enCurvaSuave_siAvisa() {
+        // Autovía con curva: a 400 m el panel queda unos 60 m a un lado de la recta.
+        Panel enCurva = panelAt(app.crosus.waze.extension.geo.Geo.destination(39.57, 2.65, 0, 60), 400, 90);
+        assertNotNull(engine.check(Collections.singletonList(enCurva), 39.57, 2.65, 90, VELOCIDAD, 0));
+    }
+
+    /** Panel a 'ahead' metros hacia el este desde 'origin', mirando a 'bearing'. */
+    private static Panel panelAt(double[] origin, double ahead, double bearing) {
+        double[] p = app.crosus.waze.extension.geo.Geo.destination(origin[0], origin[1], 90, ahead);
+        return panel("PARALELO", p[0], p[1], bearing, "EVITE DESPLAZARSE");
+    }
 }
