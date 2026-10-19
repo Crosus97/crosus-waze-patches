@@ -10,7 +10,8 @@ marcha, Waze te muestra lo que pone el panel en ese momento.
 - Datos públicos y gratuitos del [Punto de Acceso Nacional de la DGT](https://nap.dgt.es)
   (DATEX II v3.7): localizaciones de paneles cada hora y su mensaje cada minuto.
   Cubre España salvo País Vasco y Cataluña.
-- Solo se conecta a `nap.dgt.es` por HTTPS. No envía tu ubicación ni ningún dato a ningún sitio:
+- Solo se conecta por HTTPS a `nap.dgt.es` (datos), `etraffic.dgt.es` y `commons.wikimedia.org`
+  (iconos, se guardan en caché). No envía tu ubicación ni ningún dato tuyo a ningún sitio:
   la comparación con tu posición se hace en el móvil.
 - Solo avisa de paneles delante de ti, en tu sentido, encendidos, y no repite el mismo mensaje.
 
@@ -65,6 +66,10 @@ extensions/extension/src/main/java/app/crosus/waze/extension/
 
 - Punto de enganche `NativeManager.flushOnAppStartedEvents()` documentado en
   [Pilotkosinus/morphe-waze-patches](https://github.com/Pilotkosinus/morphe-waze-patches) (GPLv3).
+- Iconos de los avisos: señales de tráfico de España de [Wikimedia Commons](https://commons.wikimedia.org/)
+  (archivos "Spain traffic signal …", en su mayoría de dominio público; alguno, como R-300, bajo
+  CC BY-SA 3.0, con autoría indicada en su página de Commons). Se descargan en el móvil al primer uso.
+  Para los pictogramas propios de paneles se usan las imágenes de la DGT (etraffic.dgt.es).
 - Basado en la [plantilla de Morphe](https://github.com/MorpheApp/morphe-patches-template).
 - No afiliado con Waze, Google, la DGT ni Morphe.
 

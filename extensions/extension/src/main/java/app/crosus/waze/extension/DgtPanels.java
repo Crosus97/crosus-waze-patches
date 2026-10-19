@@ -52,6 +52,7 @@ public final class DgtPanels {
     private static volatile Map<String, Panel> panels = Collections.emptyMap();
     private static long lastLocationsFetch;
     private static PanelNotifier notifier;
+    private static Context appContext;
     private static final TestPanel testPanel = new TestPanel();
     /** Última posición, para calcular rumbo y velocidad si el GPS no los da (p. ej. rutas simuladas). */
     private static Location previous;
@@ -77,6 +78,7 @@ public final class DgtPanels {
                 Log.e(TAG, "Sin Context, no se arranca");
                 return;
             }
+            appContext = context;
             notifier = new PanelNotifier(context);
             HandlerThread thread = new HandlerThread("CrosusDgt");
             thread.start();
@@ -206,7 +208,8 @@ public final class DgtPanels {
      */
     private static void showAlert(Panel panel) {
         worker.post(() -> {
-            android.graphics.Bitmap icon = PictogramCache.get(panel.firstPictogramUrl());
+            android.graphics.Bitmap icon = PictogramCache.get(
+                    appContext, panel.firstPictogramCode(), panel.firstPictogramUrl());
             main.post(() -> {
                 if (!CarAlerts.show(panel, icon)) notifier.show(panel);
             });
