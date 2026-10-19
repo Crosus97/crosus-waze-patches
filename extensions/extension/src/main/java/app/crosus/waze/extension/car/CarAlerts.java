@@ -27,8 +27,11 @@ import app.crosus.waze.extension.dgt.Panel;
  */
 public final class CarAlerts {
     private static final String TAG = "CrosusCar";
-    /** Duración recomendada por Google para un Alert de navegación. */
-    private static final long DURATION_MS = 10_000;
+    /**
+     * Google recomienda 10 s para avisos de navegación. Aquí el aviso es para releer un panel que ya
+     * has pasado, así que se deja algo más para poder mirarlo cuando sea seguro.
+     */
+    private static final long DURATION_MS = 15_000;
 
     private static volatile WeakReference<CarContext> carContext = new WeakReference<>(null);
     private static int nextAlertId = 0xD670;

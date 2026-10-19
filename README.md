@@ -4,8 +4,9 @@ Patches de [Morphe](https://morphe.software) para Waze (`com.waze`).
 
 ## ❓ Qué hace
 
-**Paneles DGT**: cuando te acercas a un panel de mensaje variable de la DGT en tu sentido de
-marcha, Waze te muestra lo que pone el panel en ese momento.
+**Paneles DGT**: cuando **pasas** por un panel de mensaje variable de la DGT en tu sentido de
+marcha, Waze te muestra lo que ponía, por si no te dio tiempo a leerlo. En Android Auto sale como
+un aviso nativo de Waze sobre el mapa, con el pictograma del panel.
 
 - Datos públicos y gratuitos del [Punto de Acceso Nacional de la DGT](https://nap.dgt.es)
   (DATEX II v3.7): localizaciones de paneles cada hora y su mensaje cada minuto.
@@ -13,7 +14,8 @@ marcha, Waze te muestra lo que pone el panel en ese momento.
 - Solo se conecta por HTTPS a `nap.dgt.es` (datos), `etraffic.dgt.es` y `commons.wikimedia.org`
   (iconos, se guardan en caché). No envía tu ubicación ni ningún dato tuyo a ningún sitio:
   la comparación con tu posición se hace en el móvil.
-- Solo avisa de paneles delante de ti, en tu sentido, encendidos, y no repite el mismo mensaje.
+- Solo avisa de paneles por los que pasas de verdad (a menos de 80 m), en tu sentido y encendidos;
+  descarta los de carreteras paralelas y el del sentido contrario, y no repite el mismo mensaje.
 
 ### Estado
 

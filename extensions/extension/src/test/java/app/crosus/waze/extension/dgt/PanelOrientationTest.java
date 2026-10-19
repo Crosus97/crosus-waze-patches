@@ -2,7 +2,6 @@ package app.crosus.waze.extension.dgt;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
@@ -51,27 +50,22 @@ public class PanelOrientationTest {
 
     @Test
     public void yendoHaciaElEste_soloAvisaElPanelDeTuSentido() {
-        // Coche 500 m al oeste del pórtico, rumbo este.
-        double[] car = Geo.destination(42.96975, -7.4792, 270, 500);
-        Panel hit = new ProximityEngine().check(panels.values(), car[0], car[1], 90, 25, 0);
-        assertNotNull(hit);
-        assertEquals("A6_POS", hit.id);
+        double[] start = Geo.destination(42.96975, -7.4792, 270, 1000);
+        assertEquals(Collections.singletonList("A6_POS"),
+                Drive.straight(new ProximityEngine(), panels.values(), start[0], start[1], 90, 2000, 0));
     }
 
     @Test
     public void yendoHaciaElOeste_soloAvisaElOtro() {
-        // Coche 500 m al este del pórtico, rumbo oeste.
-        double[] car = Geo.destination(42.96975, -7.4792, 90, 500);
-        Panel hit = new ProximityEngine().check(panels.values(), car[0], car[1], 270, 25, 0);
-        assertNotNull(hit);
-        assertEquals("A6_NEG", hit.id);
+        double[] start = Geo.destination(42.96975, -7.4792, 90, 1000);
+        assertEquals(Collections.singletonList("A6_NEG"),
+                Drive.straight(new ProximityEngine(), panels.values(), start[0], start[1], 270, 2000, 0));
     }
 
     @Test
     public void elPanelDeEnfrenteNuncaAvisa() {
-        // Solo el panel del sentido contrario: aunque esté delante, no debe avisar.
-        double[] car = Geo.destination(42.96975, -7.4792, 270, 500);
-        assertNull(new ProximityEngine().check(
-                Collections.singletonList(panels.get("A6_NEG")), car[0], car[1], 90, 25, 0));
+        double[] start = Geo.destination(42.96975, -7.4792, 270, 1000);
+        assertTrue(Drive.straight(new ProximityEngine(), Collections.singletonList(panels.get("A6_NEG")),
+                start[0], start[1], 90, 2000, 0).isEmpty());
     }
 }

@@ -48,7 +48,8 @@ public final class TestPanel {
         double d = Geo.distanceMeters(lat, lon, panel.latitude, panel.longitude);
         if (d > resetDistanceM) return true;
         double toPanel = Geo.bearingDegrees(lat, lon, panel.latitude, panel.longitude);
-        // Ya lo has pasado: queda a tu espalda.
-        return d < 60 || Geo.angleDifference(toPanel, headingDeg) > 90;
+        // Ya lo has pasado y queda a más de 150 m detrás. No se recoloca justo al pasarlo, para que
+        // el detector vea que ha quedado atrás y lance el aviso.
+        return d > 150 && Geo.angleDifference(toPanel, headingDeg) > 90;
     }
 }

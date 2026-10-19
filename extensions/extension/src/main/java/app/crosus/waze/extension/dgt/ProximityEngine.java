@@ -2,78 +2,114 @@ package app.crosus.waze.extension.dgt;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import app.crosus.waze.extension.geo.Geo;
 
 /**
- * Decide si hay que avisar de un panel. Java puro, sin Android.
+ * Detecta que <b>acabas de pasar</b> por un panel, para enseñarte lo que decía por si no lo viste.
+ * No predice: espera a que el panel quede atrás. Java puro, sin Android.
  *
- * <p>Un panel dispara aviso si:
+ * <p>Funcionamiento, con cada posición GPS:
  * <ol>
- *   <li>tiene texto (está encendido),</li>
- *   <li>está a menos de {@link #triggerDistanceM} metros,</li>
- *   <li>está delante del coche (el rumbo hacia el panel se parece al rumbo de marcha),</li>
- *   <li>está cerca de la línea por la que circulas (distancia lateral pequeña): descarta paneles de
- *   carreteras paralelas, p. ej. la Ma-19 a 150 m de una calle que va en el mismo sentido,</li>
- *   <li>si la DGT da su orientación, mira hacia nuestro sentido (descarta el de la calzada contraria),</li>
- *   <li>y no se ha avisado ya de ese mismo panel con el mismo texto hace poco.</li>
+ *   <li><b>Aproximación:</b> un panel encendido, delante, a menos de {@link #approachDistanceM},
+ *   cerca de tu trayectoria (distancia lateral pequeña) y orientado a tu sentido pasa a
+ *   "seguimiento". Se guarda la distancia mínima a la que llegas a estar.</li>
+ *   <li><b>Paso:</b> cuando un panel en seguimiento queda detrás de ti y llegaste a pasar a menos de
+ *   {@link #passRadiusM}, se considera pasado y se devuelve para avisar.</li>
  * </ol>
+ * Descarta paneles de carreteras paralelas (nunca pasas cerca), del sentido contrario (orientación)
+ * y paneles a los que te acercas pero no llegas (das la vuelta o sales antes).
  */
 public final class ProximityEngine {
-    public double triggerDistanceM = 800;
-    /** Por debajo de esto no se avisa (ya lo has pasado o estás parado debajo). */
-    public double minDistanceM = 60;
-    /** Margen entre el rumbo de marcha y el rumbo hacia el panel. */
+    /** Distancia a partir de la cual se empieza a seguir un panel que tienes delante. */
+    public double approachDistanceM = 400;
+    /**
+     * Distancia mínima máxima para dar un panel por pasado. A 120 km/h el GPS da una posición cada
+     * ~33 m, así que la más cercana puede quedar a varias decenas de metros del panel.
+     */
+    public double passRadiusM = 80;
+    /** Margen entre el rumbo de marcha y el rumbo hacia el panel para considerarlo "delante". */
     public double aheadToleranceDeg = 35;
     /** Margen entre el rumbo de marcha y la orientación del panel. */
     public double facingToleranceDeg = 60;
-    /**
-     * Distancia lateral máxima entre el panel y tu trayectoria: base + un % de la distancia al panel,
-     * porque en curvas el panel se separa más de la recta cuanto más lejos está.
-     */
+    /** Distancia lateral máxima durante la aproximación: base + % de la distancia (curvas). */
     public double lateralBaseM = 40;
     public double lateralPerDistance = 0.10;
     /** Sin rumbo fiable por debajo de esta velocidad (m/s, ~18 km/h). */
     public double minSpeedMps = 5;
+    /** Un panel en seguimiento que no se pasa en este tiempo se olvida. */
+    public long trackingTimeoutMs = 2 * 60 * 1000L;
+    /** No repetir el mismo mensaje del mismo panel en este tiempo. */
     public long cooldownMs = 10 * 60 * 1000L;
 
+    private static final class Tracked {
+        double minDistance;
+        long lastSeenMs;
+    }
+
+    private final Map<String, Tracked> tracking = new HashMap<>();
     private final Map<String, String> lastAlertText = new HashMap<>();
     private final Map<String, Long> lastAlertTime = new HashMap<>();
 
     /**
      * @param headingDeg rumbo de marcha en grados (0 = norte), NaN si no se conoce.
      * @param speedMps   velocidad en m/s.
-     * @return el panel más cercano que cumple todo, o null.
+     * @return el panel que acabas de pasar, o null.
      */
     public synchronized Panel check(Collection<Panel> panels, double lat, double lon,
                                     double headingDeg, double speedMps, long nowMs) {
+        expire(nowMs);
         if (Double.isNaN(headingDeg) || speedMps < minSpeedMps) return null;
 
-        Panel best = null;
-        double bestDistance = Double.MAX_VALUE;
+        Panel passed = null;
+        double passedMin = Double.MAX_VALUE;
         for (Panel p : panels) {
             if (!p.hasText() || !p.hasLocation()) continue;
             double d = Geo.distanceMeters(lat, lon, p.latitude, p.longitude);
-            if (d > triggerDistanceM || d < minDistanceM || d >= bestDistance) continue;
+            Tracked t = tracking.get(p.id);
+            if (t == null && d > approachDistanceM) continue;
 
-            double toPanel = Geo.bearingDegrees(lat, lon, p.latitude, p.longitude);
-            double offAngle = Geo.angleDifference(toPanel, headingDeg);
-            if (offAngle > aheadToleranceDeg) continue;
-            double lateral = d * Math.sin(Math.toRadians(offAngle));
-            if (lateral > lateralBaseM + lateralPerDistance * d) continue;
-            if (!Double.isNaN(p.bearing)
-                    && Geo.angleDifference(p.bearing, headingDeg) > facingToleranceDeg) continue;
-            if (recentlyAlerted(p, nowMs)) continue;
+            double offAngle = Geo.angleDifference(Geo.bearingDegrees(lat, lon, p.latitude, p.longitude), headingDeg);
+            boolean facing = Double.isNaN(p.bearing)
+                    || Geo.angleDifference(p.bearing, headingDeg) <= facingToleranceDeg;
 
-            best = p;
-            bestDistance = d;
+            if (offAngle <= 90) {
+                // Delante: entra o sigue en seguimiento si está bien alineado con tu trayectoria.
+                double lateral = d * Math.sin(Math.toRadians(offAngle));
+                boolean aligned = offAngle <= aheadToleranceDeg
+                        && lateral <= lateralBaseM + lateralPerDistance * d;
+                if (t == null) {
+                    if (!aligned || !facing) continue;
+                    t = new Tracked();
+                    t.minDistance = d;
+                    tracking.put(p.id, t);
+                }
+                t.minDistance = Math.min(t.minDistance, d);
+                t.lastSeenMs = nowMs;
+            } else if (t != null) {
+                // Ha quedado detrás: ¿pasaste cerca?
+                tracking.remove(p.id);
+                double closest = Math.min(t.minDistance, d);
+                if (closest <= passRadiusM && facing && !recentlyAlerted(p, nowMs) && closest < passedMin) {
+                    passed = p;
+                    passedMin = closest;
+                }
+            }
         }
-        if (best != null) {
-            lastAlertText.put(best.id, best.signature());
-            lastAlertTime.put(best.id, nowMs);
+        if (passed != null) {
+            lastAlertText.put(passed.id, passed.signature());
+            lastAlertTime.put(passed.id, nowMs);
         }
-        return best;
+        return passed;
+    }
+
+    private void expire(long nowMs) {
+        Iterator<Map.Entry<String, Tracked>> it = tracking.entrySet().iterator();
+        while (it.hasNext()) {
+            if (nowMs - it.next().getValue().lastSeenMs > trackingTimeoutMs) it.remove();
+        }
     }
 
     private boolean recentlyAlerted(Panel p, long nowMs) {
