@@ -21,11 +21,12 @@ un aviso nativo de Waze sobre el mapa, con el pictograma del panel.
 
 | Fase | Estado |
 | --- | --- |
-| Descarga y parser DATEX II de la DGT | ✅ escrito, probado con XML de ejemplo · ⏳ validar con XML real |
-| Lógica de proximidad y sentido | ✅ escrita y probada |
-| Enganche al arranque de Waze | ✅ escrito · ⏳ probar en Waze |
-| Aviso en el móvil (notificación emergente) | ✅ básico |
-| Aviso en Android Auto | ⏳ pendiente |
+| Descarga y parser DATEX II de la DGT (páginas, pictogramas) | ✅ verificado con el XML real |
+| Sentido de cada panel (km crecientes/decrecientes → rumbo) | ✅ |
+| Detección del paso por el panel (descarta vías paralelas y sentido contrario) | ✅ probado en simulador · ⏳ prueba en carretera |
+| Aviso en Android Auto (Alert nativo con pictograma) | ✅ probado en el DHU |
+| Aviso en el móvil (notificación) cuando no hay Android Auto | ✅ |
+| Opciones: modo prueba y registro de trayecto | ✅ |
 | Ajustes dentro de Waze | ⏳ pendiente |
 
 ### Cómo usar estos patches
