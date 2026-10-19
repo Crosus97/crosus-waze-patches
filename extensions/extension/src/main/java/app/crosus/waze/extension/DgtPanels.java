@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import app.crosus.waze.extension.car.CarLibraryProbe;
 import app.crosus.waze.extension.dgt.DgtClient;
 import app.crosus.waze.extension.dgt.Panel;
 import app.crosus.waze.extension.dgt.PanelNotifier;
@@ -80,6 +81,7 @@ public final class DgtPanels {
             worker = new Handler(thread.getLooper());
             main = new Handler(Looper.getMainLooper());
 
+            worker.post(() -> CarLibraryProbe.run(context.getClassLoader()));
             worker.post(DgtPanels::refreshLoop);
             main.post(() -> startLocationUpdates(context));
             Log.i(TAG, "Paneles DGT arrancado" + (isTestMode() ? " (MODO PRUEBA)" : ""));
