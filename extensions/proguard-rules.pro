@@ -6,3 +6,5 @@
 -keep class app.crosus.waze.** {
   *;
 }
+# La Car App Library es compileOnly: en ejecución la pone Waze.
+-dontwarn androidx.**

@@ -19,10 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import app.crosus.waze.extension.car.CarAlerts;
 import app.crosus.waze.extension.car.CarLibraryProbe;
 import app.crosus.waze.extension.dgt.DgtClient;
 import app.crosus.waze.extension.dgt.Panel;
 import app.crosus.waze.extension.dgt.PanelNotifier;
+import app.crosus.waze.extension.dgt.PictogramCache;
 import app.crosus.waze.extension.dgt.ProximityEngine;
 import app.crosus.waze.extension.dgt.TestPanel;
 import app.crosus.waze.extension.geo.Geo;
@@ -188,11 +190,24 @@ public final class DgtPanels {
                     heading, speed, now);
             if (hit != null) {
                 Log.i(TAG, "Aviso: " + hit);
-                notifier.show(hit);
+                showAlert(hit);
             }
         } catch (Throwable t) {
             Log.e(TAG, "Fallo procesando ubicación", t);
         }
+    }
+
+    /**
+     * Descarga el pictograma (hilo de trabajo) y muestra el aviso (hilo principal):
+     * en la pantalla del coche si Android Auto está conectado; si no, notificación en el móvil.
+     */
+    private static void showAlert(Panel panel) {
+        worker.post(() -> {
+            android.graphics.Bitmap icon = PictogramCache.get(panel.firstPictogramUrl());
+            main.post(() -> {
+                if (!CarAlerts.show(panel, icon)) notifier.show(panel);
+            });
+        });
     }
 
     // ------------------------------------------------------------------ util

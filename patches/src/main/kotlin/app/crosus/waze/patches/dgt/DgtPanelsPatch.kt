@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 
 private const val EXTENSION_CLASS = "Lapp/crosus/waze/extension/DgtPanels;"
+private const val CAR_ALERTS_CLASS = "Lapp/crosus/waze/extension/car/CarAlerts;"
 
 @Suppress("unused")
 val dgtPanelsPatch = bytecodePatch(
@@ -35,6 +36,15 @@ val dgtPanelsPatch = bytecodePatch(
             0,
             "invoke-static { }, $EXTENSION_CLASS->onAppStarted()V"
         )
+
+        // Captura el CarContext de Android Auto para poder mostrar avisos en la pantalla del coche.
+        // Se inserta justo antes del return-void final del constructor, cuando la Screen ya está creada.
+        CarScreenConstructorFingerprint.method.apply {
+            addInstruction(
+                implementation!!.instructions.size - 1,
+                "invoke-static { p1 }, $CAR_ALERTS_CLASS->onScreenCreated(Ljava/lang/Object;)V"
+            )
+        }
 
         if (testMode == true) {
             IsTestModeFingerprint.method.addInstructions(

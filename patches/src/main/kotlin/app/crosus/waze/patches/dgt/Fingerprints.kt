@@ -26,3 +26,15 @@ internal object IsTestModeFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf()
 )
+
+/**
+ * Constructor `androidx.car.app.Screen(CarContext)`. Waze crea una Screen por cada pantalla de
+ * Android Auto. La Car App Library conserva su nombre dentro de Waze (comprobado con CarLibraryProbe
+ * en Waze 5.25.0.1), así que este fingerprint no depende de nombres ofuscados.
+ */
+internal object CarScreenConstructorFingerprint : Fingerprint(
+    definingClass = "Landroidx/car/app/Screen;",
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Landroidx/car/app/CarContext;")
+)
