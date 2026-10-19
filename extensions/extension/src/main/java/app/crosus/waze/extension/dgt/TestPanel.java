@@ -14,6 +14,7 @@ import app.crosus.waze.extension.geo.Geo;
  */
 public final class TestPanel {
     public static final String ID = "CROSUS_TEST_PANEL";
+    public static final String PICTOGRAM = "P50";
     /** A qué distancia por delante se coloca el panel. Menor que el radio de aviso, así salta enseguida. */
     public double aheadM = 600;
     /** Si el panel queda más lejos de esto o detrás del coche, se coloca uno nuevo. */
@@ -33,7 +34,11 @@ public final class TestPanel {
             fresh.road = "PRUEBA";
             // La hora en el texto hace que cada panel nuevo cuente como mensaje nuevo (salta el cooldown).
             String time = new SimpleDateFormat("HH:mm:ss", Locale.ROOT).format(new Date(nowMs));
-            fresh.setTextLines(Arrays.asList("PANEL DE PRUEBA", "CROSUS " + time));
+            // Pictograma P-50 ("otros peligros", triángulo con exclamación) con la imagen oficial de la DGT.
+            fresh.setPages(java.util.Collections.singletonList(new Panel.Page(
+                    Arrays.asList("PANEL DE PRUEBA", "CROSUS " + time),
+                    java.util.Collections.singletonList(PICTOGRAM),
+                    java.util.Collections.singletonList(DatexParser.pictogramUrl(PICTOGRAM)))));
             panel = fresh;
         }
         return panel;

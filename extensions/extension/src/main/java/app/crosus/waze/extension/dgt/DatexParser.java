@@ -19,7 +19,7 @@ import javax.xml.parsers.SAXParserFactory;
  * Parser de los XML DATEX II de la DGT, en streaming (SAX) para no cargar media España en memoria.
  * Java puro: funciona igual en Android y en el PC.
  *
- * <p><b>PENDIENTE DE VALIDAR con un XML real.</b> Los nombres de elementos siguen el modelo VMS de
+ * <p>Tiempo real: verificado con el XML publicado por la DGT (perfil VmsPublication 3.7, 19/10/2026).
  * DATEX II v3, pero el perfil exacto de la DGT puede variar. Por eso el parser es tolerante:
  * ignora namespaces, compara nombres locales sin distinguir mayúsculas y no depende de la jerarquía exacta.
  *
@@ -57,13 +57,13 @@ public final class DatexParser {
     public static int applyStatus(InputStream in, Map<String, Panel> panels) throws Exception {
         StatusHandler handler = new StatusHandler();
         newParser().parse(in, handler);
-        int withText = 0;
+        int withMessage = 0;
         for (Panel p : panels.values()) {
-            List<String> lines = handler.textById.get(p.id);
-            p.setTextLines(lines == null ? new ArrayList<>() : lines);
-            if (p.hasText()) withText++;
+            List<Panel.Page> pages = handler.pagesById.get(p.id);
+            p.setPages(pages == null ? new ArrayList<Panel.Page>() : pages);
+            if (p.hasText()) withMessage++;
         }
-        return withText;
+        return withMessage;
     }
 
     private static SAXParser newParser() throws Exception {
@@ -176,14 +176,37 @@ public final class DatexParser {
 
     // ------------------------------------------------------------------ tiempo real
 
+    /**
+     * Estructura real del perfil DGT (VmsPublication 3.7), verificada con el XML publicado:
+     * <pre>
+     * vmsControllerStatus
+     *   vmsControllerTableReference id=""          (vacío: se ignora)
+     *   vmsControllerReference id="61441"          (id del panel)
+     *   vmsStatus/vmsStatus
+     *     vmsMessage messageIndex="1"/vmsMessage   (una página; puede haber varias)
+     *       displayAreaSettings displayAreaIndex="1"  PictogramDisplay: pictogramDisplayUrl + customPictogramCode
+     *       displayAreaSettings displayAreaIndex="2"  TextDisplay: textLine con saltos de línea
+     *       displayAreaSettings displayAreaIndex="3"  PictogramDisplay (derecha)
+     * </pre>
+     */
     private static final class StatusHandler extends DefaultHandler {
-        final Map<String, List<String>> textById = new HashMap<>();
+        /** Huecos de pictograma sin contenido. */
+        private static final java.util.Set<String> EMPTY_PICTOGRAMS =
+                new java.util.HashSet<>(java.util.Arrays.asList("NEGRO", "0", ""));
+
+        final Map<String, List<Panel.Page>> pagesById = new HashMap<>();
         private final StringBuilder text = new StringBuilder();
         private int depth;
-        /** Profundidad del registro que contiene la referencia actual (-1 = ninguno). */
         private int recordDepth = -1;
         private String currentRef;
-        private List<String> currentLines;
+        private List<Panel.Page> currentPages;
+
+        // Página en curso.
+        private boolean inPage;
+        private List<String> lines;
+        private List<String> codes;
+        private List<String> urls;
+        private String pendingUrl;
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes atts) {
@@ -192,10 +215,16 @@ public final class DatexParser {
             String name = localName(localName, qName);
             String id = atts.getValue("id");
             if (currentRef == null && name.endsWith("reference") && id != null && !id.isEmpty()) {
-                // El registro es el elemento padre de la referencia.
                 currentRef = id;
-                currentLines = new ArrayList<>();
+                currentPages = new ArrayList<>();
                 recordDepth = depth - 1;
+            } else if (currentRef != null && name.equals("vmsmessage") && atts.getValue("messageIndex") != null) {
+                flushPage();
+                inPage = true;
+                lines = new ArrayList<>();
+                codes = new ArrayList<>();
+                urls = new ArrayList<>();
+                pendingUrl = null;
             }
         }
 
@@ -209,24 +238,58 @@ public final class DatexParser {
             String name = localName(localName, qName);
             String value = text.toString().trim();
             text.setLength(0);
-            if (currentRef != null && !value.isEmpty() && isTextLine(name)) {
-                currentLines.add(value);
-            }
-            if (currentRef != null && depth == recordDepth) {
-                if (!currentLines.isEmpty()) {
-                    List<String> existing = textById.get(currentRef);
-                    if (existing == null) textById.put(currentRef, currentLines);
-                    else existing.addAll(currentLines);
+            if (currentRef != null) {
+                if (!inPage) {
+                    // Perfil desconocido sin vmsMessage: se crea una página implícita.
+                    if (!value.isEmpty() && (name.contains("textline") || name.equals("text"))) {
+                        inPage = true;
+                        lines = new ArrayList<>();
+                        codes = new ArrayList<>();
+                        urls = new ArrayList<>();
+                    }
                 }
-                currentRef = null;
-                currentLines = null;
-                recordDepth = -1;
+                if (inPage && !value.isEmpty()) {
+                    if (name.contains("textline") || name.equals("text") || name.equals("vmstext")) {
+                        for (String line : value.split("\\r?\\n")) {
+                            String l = line.trim();
+                            if (!l.isEmpty()) lines.add(l);
+                        }
+                    } else if (name.equals("pictogramdisplayurl")) {
+                        pendingUrl = value;
+                    } else if (name.equals("custompictogramcode")) {
+                        if (!EMPTY_PICTOGRAMS.contains(value)) {
+                            codes.add(value);
+                            urls.add(pendingUrl != null ? pendingUrl : pictogramUrl(value));
+                        }
+                        pendingUrl = null;
+                    }
+                }
+                if (depth == recordDepth) {
+                    flushPage();
+                    if (!currentPages.isEmpty()) {
+                        List<Panel.Page> existing = pagesById.get(currentRef);
+                        if (existing == null) pagesById.put(currentRef, currentPages);
+                        else existing.addAll(currentPages);
+                    }
+                    currentRef = null;
+                    currentPages = null;
+                    recordDepth = -1;
+                }
             }
             depth--;
         }
 
-        private static boolean isTextLine(String name) {
-            return name.contains("textline") || name.equals("text") || name.equals("vmstext");
+        private void flushPage() {
+            if (inPage) {
+                Panel.Page page = new Panel.Page(lines, codes, urls);
+                if (!page.isEmpty()) currentPages.add(page);
+            }
+            inPage = false;
         }
+    }
+
+    /** URL oficial de la imagen de un pictograma DGT, por si el XML no la trae. */
+    public static String pictogramUrl(String code) {
+        return "https://etraffic.dgt.es/estaticosEtraffic/Iconografia/pictogramas/" + code + ".png";
     }
 }

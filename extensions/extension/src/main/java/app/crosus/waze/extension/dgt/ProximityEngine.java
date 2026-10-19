@@ -59,7 +59,7 @@ public final class ProximityEngine {
             bestDistance = d;
         }
         if (best != null) {
-            lastAlertText.put(best.id, best.text());
+            lastAlertText.put(best.id, best.signature());
             lastAlertTime.put(best.id, nowMs);
         }
         return best;
@@ -69,6 +69,6 @@ public final class ProximityEngine {
         Long t = lastAlertTime.get(p.id);
         if (t == null || nowMs - t > cooldownMs) return false;
         // Si el texto del panel ha cambiado, se vuelve a avisar.
-        return p.text().equals(lastAlertText.get(p.id));
+        return p.signature().equals(lastAlertText.get(p.id));
     }
 }

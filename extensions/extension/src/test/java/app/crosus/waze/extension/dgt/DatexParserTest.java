@@ -48,10 +48,29 @@ public class DatexParserTest {
 
     @Test
     public void tiempoReal_asignaElTextoACadaPanel() throws Exception {
-        int conTexto = DatexParser.applyStatus(resource("sample_status.xml"), panels);
-        assertEquals(2, conTexto);
-        assertEquals("ACCIDENTE A 2 KM\nCARRIL DCHO CORTADO", panels.get("PMV_A").text());
-        assertEquals("PRECAUCION OBRAS", panels.get("PMV_B").text());
+        int conMensaje = DatexParser.applyStatus(resource("sample_status.xml"), panels);
+        assertEquals(2, conMensaje);
+        // El texto viene en un solo campo con saltos de línea: se separa en líneas limpias.
+        assertEquals("VELOCIDAD\nCONTROLADA\nPOR RADAR", panels.get("PMV_B").text());
+    }
+
+    @Test
+    public void tiempoReal_variasPaginas() throws Exception {
+        DatexParser.applyStatus(resource("sample_status.xml"), panels);
+        Panel a = panels.get("PMV_A");
+        assertEquals(2, a.getPages().size());
+        assertEquals("HASTA KM 50\nOBRA MOVIL\nCARRIL IZQDO · MODERE\nLA\nVELOCIDAD", a.text());
+    }
+
+    @Test
+    public void tiempoReal_pictogramas_ignoraLosHuecosNegros() throws Exception {
+        DatexParser.applyStatus(resource("sample_status.xml"), panels);
+        Panel a = panels.get("PMV_A");
+        assertEquals(1, a.getPages().get(0).pictogramCodes.size());
+        assertEquals("P18O", a.firstPictogramCode());
+        assertEquals("https://etraffic.dgt.es/estaticosEtraffic/Iconografia/pictogramas/P18O.png",
+                a.firstPictogramUrl());
+        assertEquals("R301100I", panels.get("PMV_B").firstPictogramCode());
     }
 
     @Test
