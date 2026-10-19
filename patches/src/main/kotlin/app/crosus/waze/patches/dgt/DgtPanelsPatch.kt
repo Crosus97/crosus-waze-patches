@@ -29,6 +29,15 @@ val dgtPanelsPatch = bytecodePatch(
         required = true
     )
 
+    val tripLog by booleanOption(
+        key = "tripLog",
+        default = false,
+        title = "Registro de trayecto",
+        description = "Guarda el recorrido GPS y los paneles por los que pasas en " +
+            "Descargas/CrosusDGT (solo en el móvil), para analizar pruebas en carretera.",
+        required = true
+    )
+
     execute {
         // Arranca el servicio de paneles en cada inicio de Waze.
         // Waze ya declara INTERNET y los permisos de ubicación, así que no hace falta tocar el manifest.
@@ -43,6 +52,16 @@ val dgtPanelsPatch = bytecodePatch(
             addInstruction(
                 implementation!!.instructions.size - 1,
                 "invoke-static { p1 }, $CAR_ALERTS_CLASS->onScreenCreated(Ljava/lang/Object;)V"
+            )
+        }
+
+        if (tripLog == true) {
+            IsTripLogEnabledFingerprint.method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x1
+                    return v0
+                """
             )
         }
 

@@ -38,3 +38,11 @@ internal object CarScreenConstructorFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroidx/car/app/CarContext;")
 )
+
+/** `boolean DgtPanels.isTripLogEnabled()`: el patch reescribe su cuerpo según la opción. */
+internal object IsTripLogEnabledFingerprint : Fingerprint(
+    definingClass = "Lapp/crosus/waze/extension/DgtPanels;",
+    name = "isTripLogEnabled",
+    returnType = "Z",
+    parameters = listOf()
+)

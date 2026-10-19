@@ -65,6 +65,16 @@ public final class DgtPanels {
         return false;
     }
 
+    /**
+     * Registro de trayecto. El patch sustituye el cuerpo según la opción "Registro de trayecto".
+     * No cambiar el nombre ni la firma.
+     */
+    public static boolean isTripLogEnabled() {
+        return false;
+    }
+
+    private static TripLogger tripLog;
+
     private DgtPanels() {
     }
 
@@ -80,6 +90,10 @@ public final class DgtPanels {
             }
             appContext = context;
             notifier = new PanelNotifier(context);
+            if (isTripLogEnabled()) {
+                tripLog = TripLogger.open(context);
+                engine.listener = tripLog;
+            }
             HandlerThread thread = new HandlerThread("CrosusDgt");
             thread.start();
             worker = new Handler(thread.getLooper());
@@ -88,7 +102,8 @@ public final class DgtPanels {
             worker.post(() -> CarLibraryProbe.run(context.getClassLoader()));
             worker.post(DgtPanels::refreshLoop);
             main.post(() -> startLocationUpdates(context));
-            Log.i(TAG, "Paneles DGT arrancado" + (isTestMode() ? " (MODO PRUEBA)" : ""));
+            Log.i(TAG, "Paneles DGT arrancado" + (isTestMode() ? " (MODO PRUEBA)" : "")
+                    + (tripLog != null ? " (REGISTRO DE TRAYECTO)" : ""));
         } catch (Throwable t) {
             // Nunca tumbar Waze por un fallo del patch.
             Log.e(TAG, "Fallo al arrancar", t);
@@ -106,7 +121,7 @@ public final class DgtPanels {
                 // Conserva el texto actual hasta la siguiente lectura de tiempo real.
                 for (Panel p : fresh.values()) {
                     Panel old = panels.get(p.id);
-                    if (old != null) p.setTextLines(old.getTextLines());
+                    if (old != null) p.setPages(old.getPages());
                 }
                 panels = fresh;
                 lastLocationsFetch = now;
@@ -117,6 +132,7 @@ public final class DgtPanels {
             }
             int withText = client.fetchStatus(panels);
             Log.i(TAG, "Tiempo real: " + withText + " paneles con mensaje");
+            if (tripLog != null) tripLog.nearbyPanels(panels.values());
         } catch (Throwable t) {
             Log.w(TAG, "Fallo al descargar datos DGT", t);
             delay = RETRY_MS;
@@ -164,6 +180,7 @@ public final class DgtPanels {
         try {
             long now = System.currentTimeMillis();
             double heading = location.hasBearing() ? location.getBearing() : Double.NaN;
+            boolean computedHeading = Double.isNaN(heading);
             double speed = location.hasSpeed() ? location.getSpeed() : Double.NaN;
             Location prev = previous;
             previous = location;
@@ -179,6 +196,10 @@ public final class DgtPanels {
                 }
             }
             if (Double.isNaN(speed)) speed = 0;
+            if (tripLog != null) {
+                tripLog.location(now, location.getLatitude(), location.getLongitude(), speed, heading,
+                        computedHeading, location.hasAccuracy() ? location.getAccuracy() : -1);
+            }
 
             Collection<Panel> candidates = panels.values();
             if (isTestMode()) {
@@ -211,7 +232,9 @@ public final class DgtPanels {
             android.graphics.Bitmap icon = PictogramCache.get(
                     appContext, panel.firstPictogramCode(), panel.firstPictogramUrl());
             main.post(() -> {
-                if (!CarAlerts.show(panel, icon)) notifier.show(panel);
+                boolean onCar = CarAlerts.show(panel, icon);
+                if (!onCar) notifier.show(panel);
+                if (tripLog != null) tripLog.alertShown(panel, onCar);
             });
         });
     }

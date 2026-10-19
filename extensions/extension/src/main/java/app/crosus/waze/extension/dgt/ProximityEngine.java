@@ -44,6 +44,21 @@ public final class ProximityEngine {
     /** No repetir el mismo mensaje del mismo panel en este tiempo. */
     public long cooldownMs = 10 * 60 * 1000L;
 
+    /** Para el registro de trayecto: qué hace el detector con cada panel. Opcional. */
+    public interface Listener {
+        /** Empieza a seguir un panel que tienes delante. */
+        void onTrackingStarted(Panel panel, double distanceM);
+
+        /**
+         * Un panel en seguimiento ha quedado detrás.
+         *
+         * @param reason null si se avisa; si no, por qué se descarta ("lejos", "sentido", "repetido").
+         */
+        void onPassed(Panel panel, double closestM, String reason);
+    }
+
+    public volatile Listener listener;
+
     private static final class Tracked {
         double minDistance;
         long lastSeenMs;
@@ -85,6 +100,8 @@ public final class ProximityEngine {
                     t = new Tracked();
                     t.minDistance = d;
                     tracking.put(p.id, t);
+                    Listener l = listener;
+                    if (l != null) l.onTrackingStarted(p, d);
                 }
                 t.minDistance = Math.min(t.minDistance, d);
                 t.lastSeenMs = nowMs;
@@ -92,10 +109,16 @@ public final class ProximityEngine {
                 // Ha quedado detrás: ¿pasaste cerca?
                 tracking.remove(p.id);
                 double closest = Math.min(t.minDistance, d);
-                if (closest <= passRadiusM && facing && !recentlyAlerted(p, nowMs) && closest < passedMin) {
+                String reason = closest > passRadiusM ? "lejos"
+                        : !facing ? "sentido"
+                        : recentlyAlerted(p, nowMs) ? "repetido"
+                        : null;
+                if (reason == null && closest < passedMin) {
                     passed = p;
                     passedMin = closest;
                 }
+                Listener l = listener;
+                if (l != null) l.onPassed(p, closest, reason);
             }
         }
         if (passed != null) {
